@@ -1,0 +1,86 @@
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="card-title mb-1">{{ task.vatandasAdi }}
+                    <small class="text-muted fw-normal">— {{ task.ilce }}</small>
+                </h6>
+                <p class="card-text mb-2">{{ task.talepMetni }}</p>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <small class="text-muted">
+                        <i class="bi bi-cpu me-1"></i>Tahmin:
+                    </small>
+                    {% with tip = task.tahminTipi %}
+                        {% include "components/badge.html" %}
+                    {% endwith %}
+                    {% if task.tahminOlasiligi %}
+                        <small class="text-muted">(%{{ "%.0f"|format(task.tahminOlasiligi * 100) }})</small>
+                    {% endif %}
+
+                    {% if task.onaylandiMi %}
+                        <span class="ms-2">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <small class="text-success fw-semibold">Onaylandı:</small>
+                        </span>
+                        {% with tip = task.onaylananTip %}
+                            {% include "components/badge.html" %}
+                        {% endwith %}
+                    {% endif %}
+
+                    {% set kanalLower = task.gelisKanali | string | lower %}
+                    <small class="text-muted ms-auto">
+                        <i class="bi bi-{{ 'telephone' if 'çağrı' in kanalLower else 'phone' }} me-1"></i>
+                        {{ task.gelisKanali }}
+                    </small>
+                </div>
+            </div>
+
+            {% if not task.onaylandiMi %}
+            <div class="ms-3">
+                <button class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#approve-{{ task.id }}">
+                    <i class="bi bi-check2"></i> Onayla
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if not task.onaylandiMi %}
+        <div class="collapse mt-3" id="approve-{{ task.id }}">
+            <form method="POST" action="{{ url_for('task.approveTask', task_id=task.id) }}">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <label class="form-label mb-0 fw-semibold">Onaylanacak Tip:</label>
+                    <select name="onaylanan_tip" class="form-select form-select-sm w-auto" required>
+                        <option value="">Seçiniz...</option>
+                        {% for typeObj in taskTypes %}
+                            <option value="{{ typeObj.value }}"
+                                {{ 'selected' if typeObj.value == task.tahminTipi }}>
+                                {{ typeObj.value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Onayla
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="mt-2">
+            <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>
+                {{ task.olusturmaTarihi.strftime('%d.%m.%Y %H:%M') if task.olusturmaTarihi else '' }}
+            </small>
+            {% if task.topKTahminler %}
+            <small class="text-muted ms-3">
+                <i class="bi bi-bar-chart me-1"></i>Top-3:
+                {% for t in task.topKTahminler %}
+                    {{ t.tip }} (%{{ "%.0f"|format(t.olasilik * 100) }}){% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </small>
+            {% endif %}
+        </div>
+    </div>
+</div>

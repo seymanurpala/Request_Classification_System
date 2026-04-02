@@ -1,0 +1,9 @@
+{% set renk_map = {
+    "Ulaşım":             "primary",
+    "Çevre ve Temizlik":  "success",
+    "Su ve Kanalizasyon": "info",
+    "Park ve Bahçe":      "warning",
+    "İmar ve Yapı":       "danger"
+} %}
+{% set renk = renk_map.get(tip, "secondary") %}
+<span class="badge bg-{{ renk }}">{{ tip }}</span>
