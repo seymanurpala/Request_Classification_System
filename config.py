@@ -1,8 +1,9 @@
 import os
 
-MONGO_URI        = "mongodb://localhost:27017"
-MONGO_DB         = "talep_db"
-MONGO_COLLECTION = "talepler"
+MONGO_URI             = "mongodb://localhost:27017"
+MONGO_DB              = "talep_db"
+MONGO_COLLECTION      = "talepler"
+TASK_TYPE_COLLECTION  = "talep_tipleri"
 
 BASE_DIR        = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH      = os.path.join(BASE_DIR, "infrastructure", "saved_model", "ann_model.keras")

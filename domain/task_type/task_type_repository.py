@@ -3,6 +3,7 @@ from typing import List
 
 from domain.task_type.types import TaskType
 from infrastructure.persistence.mongo_client import getDb
+import config
 
 
 class ITaskTypeRepository(ABC):
@@ -20,7 +21,7 @@ class ITaskTypeRepository(ABC):
 class TaskTypeRepository(ITaskTypeRepository):
 
     def __init__(self):
-        self._col = getDb()["talep_tipleri"]
+        self._col = getDb()[config.TASK_TYPE_COLLECTION]
 
     def getAll(self) -> List[TaskType]:
         return [TaskType(d["isim"]) for d in self._col.find()]

@@ -39,12 +39,15 @@ class AppService:
             data       = self._assembler.toCreateData(req)
             prediction = self._predictionService.predict(data["talepMetni"])
 
+            manuelTip = data.get("talepTipi")
+            kullanilacakTip = manuelTip if manuelTip else prediction["tip"]
+
             self._taskService.save(
                 talepMetni      = data["talepMetni"],
                 vatandasAdi     = data["vatandasAdi"],
                 ilce            = data["ilce"],
                 gelisKanali     = data["gelisKanali"],
-                talepTipi       = prediction["tip"],
+                talepTipi       = kullanilacakTip,
                 tahminOlasiligi = prediction["olasilik"],
                 topKTahminler   = prediction["top_k"],
             )

@@ -28,7 +28,7 @@ class ITaskRepository(ABC):
 class TaskRepository(ITaskRepository):
 
     def __init__(self):
-        self._col     = getDb()["tasks"]
+        self._col     = getDb()[config.MONGO_COLLECTION]
         self._factory = TaskFactory()
 
     def save(self, task: Task) -> str:
