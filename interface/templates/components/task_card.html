@@ -7,14 +7,30 @@
                 </h6>
                 <p class="card-text mb-2">{{ task.talepMetni }}</p>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <small class="text-muted">
-                        <i class="bi bi-cpu me-1"></i>Tahmin:
-                    </small>
-                    {% with tip = task.tahminTipi %}
-                        {% include "components/badge.html" %}
-                    {% endwith %}
-                    {% if task.tahminOlasiligi %}
-                        <small class="text-muted">(%{{ "%.0f"|format(task.tahminOlasiligi * 100) }})</small>
+                    {% if task.tahminTipi %}
+                        <small class="text-muted">
+                            <i class="bi bi-cpu me-1"></i>Tahmin:
+                        </small>
+                        {% with tip = task.tahminTipi %}
+                            {% include "components/badge.html" %}
+                        {% endwith %}
+                        {% if task.tahminOlasiligi %}
+                            <small class="text-muted">(%{{ "%.0f"|format(task.tahminOlasiligi * 100) }})</small>
+                        {% endif %}
+                    {% else %}
+                        <small class="text-muted">
+                            <i class="bi bi-cpu me-1"></i>AI tahmini yok
+                        </small>
+                    {% endif %}
+
+                    {% if task.manuelTip %}
+                        <span class="ms-2">
+                            <i class="bi bi-pencil-square text-primary me-1"></i>
+                            <small class="text-primary fw-semibold">Seçilen:</small>
+                        </span>
+                        {% with tip = task.manuelTip %}
+                            {% include "components/badge.html" %}
+                        {% endwith %}
                     {% endif %}
 
                     {% if task.onaylandiMi %}
@@ -54,8 +70,9 @@
                     <select name="onaylanan_tip" class="form-select form-select-sm w-auto" required>
                         <option value="">Seçiniz...</option>
                         {% for typeObj in taskTypes %}
+                            {% set varsayilanTip = task.onaylananTip or task.manuelTip or task.tahminTipi %}
                             <option value="{{ typeObj.value }}"
-                                {{ 'selected' if typeObj.value == task.tahminTipi }}>
+                                {{ 'selected' if typeObj.value == varsayilanTip }}>
                                 {{ typeObj.value }}
                             </option>
                         {% endfor %}

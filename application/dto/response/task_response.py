@@ -10,6 +10,7 @@ class TaskResponse:
     vatandasAdi:     str
     ilce:            str
     gelisKanali:     Optional[str]
+    manuelTip:       Optional[str]
     tahminTipi:      Optional[str]
     tahminOlasiligi: Optional[float]
     topKTahminler:   List[dict]

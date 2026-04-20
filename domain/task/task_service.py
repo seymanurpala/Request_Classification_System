@@ -19,7 +19,8 @@ class TaskService:
         vatandasAdi:     str,
         ilce:            str,
         gelisKanali:     str,
-        talepTipi:       Optional[str]   = None,
+        manuelTip:       Optional[str]   = None,
+        tahminTipi:      Optional[str]   = None,
         tahminOlasiligi: Optional[float] = None,
         topKTahminler:   Optional[list]  = None,
     ) -> Task:
@@ -28,7 +29,8 @@ class TaskService:
             vatandasAdi     = vatandasAdi,
             ilce            = ilce,
             gelisKanali     = gelisKanali,
-            talepTipi       = talepTipi,
+            manuelTip       = manuelTip,
+            tahminTipi      = tahminTipi,
             tahminOlasiligi = tahminOlasiligi,
             topKTahminler   = topKTahminler or [],
         )

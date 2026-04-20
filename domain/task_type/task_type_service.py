@@ -16,6 +16,8 @@ class TaskTypeService:
 
     def add(self, isim: str) -> bool:
         tip = self._factory.create(isim)
+        if not tip.value:
+            raise ValueError("Talep tipi boş olamaz.")
         return self._repo.add(tip)
 
     def delete(self, isim: str) -> bool:

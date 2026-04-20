@@ -10,6 +10,7 @@ class Task:
     vatandasAdi:      str
     ilce:             str
     gelisKanali:      Optional[str]   = None
+    manuelTip:        Optional[str]   = None
     tahminTipi:       Optional[str]   = None
     tahminOlasiligi:  Optional[float] = None
     topKTahminler:    List[dict]      = field(default_factory=list)

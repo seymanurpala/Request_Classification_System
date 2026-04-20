@@ -14,6 +14,7 @@ class TaskDtoDisassembler:
             vatandasAdi     = task.vatandasAdi,
             ilce            = task.ilce,
             gelisKanali     = task.gelisKanali,
+            manuelTip       = task.manuelTip,
             tahminTipi      = task.tahminTipi,
             tahminOlasiligi = task.tahminOlasiligi,
             topKTahminler   = task.topKTahminler or [],

@@ -7,6 +7,10 @@ from domain.task.i_prediction_service import IPredictionService
 import config
 
 
+def preprocess_text(metin: str) -> str:
+    return re.sub(r"[^\w\s]", " ", metin.lower().strip())
+
+
 class ANNClassifier(IPredictionService):
 
     def __init__(self):
@@ -25,7 +29,7 @@ class ANNClassifier(IPredictionService):
     def predict(self, metin: str) -> dict:
         if not metin or not metin.strip():
             raise ValueError("Tahmin için metin boş olamaz.")
-        temiz      = re.sub(r"[^\w\s]", " ", metin.lower().strip())
+        temiz      = preprocess_text(metin)
         X          = self._vectorizer.transform([temiz]).toarray()
         prob       = self._model.predict(X, verbose=0)[0]
         bestIdx    = int(np.argmax(prob))

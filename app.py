@@ -20,6 +20,7 @@ def createApp() -> Flask:
         taskService       = TaskService(TaskRepository()),
         taskTypeService   = TaskTypeService(TaskTypeRepository()),
         predictionService = ANNClassifier(),
+        listLimit         = app.config["LIST_LIMIT"],
     )
 
     initRoutes(appService)

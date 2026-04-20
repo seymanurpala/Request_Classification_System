@@ -15,8 +15,6 @@ from application.dto.response.ai_prediction_response import AIPredictionResponse
 from application.dto_assembler import TaskDtoAssembler
 from application.dto_disassembler import TaskDtoDisassembler
 
-import config
-
 logger = logging.getLogger(__name__)
 
 
@@ -27,29 +25,53 @@ class AppService:
         taskService:       TaskService,
         taskTypeService:   TaskTypeService,
         predictionService: IPredictionService,
+        listLimit:         int = 50,
     ):
         self._taskService       = taskService
         self._taskTypeService   = taskTypeService
         self._predictionService = predictionService
+        self._listLimit         = listLimit
         self._assembler         = TaskDtoAssembler()
         self._disassembler      = TaskDtoDisassembler()
 
+    def _getValidTaskTypeNames(self) -> set[str]:
+        return {taskType.value for taskType in self._taskTypeService.getAll()}
+
+    def _validateTaskType(self, tip: str, alan: str) -> None:
+        if tip and tip not in self._getValidTaskTypeNames():
+            raise ValueError(f"Geçersiz {alan}: {tip}")
+
     def createTask(self, req: CreateTaskRequest) -> bool:
         try:
-            data       = self._assembler.toCreateData(req)
-            prediction = self._predictionService.predict(data["talepMetni"])
-
+            data = self._assembler.toCreateData(req)
             manuelTip = data.get("talepTipi")
-            kullanilacakTip = manuelTip if manuelTip else prediction["tip"]
+
+            if manuelTip:
+                self._validateTaskType(manuelTip, "talep tipi")
+
+            tahminTipi = None
+            tahminOlasiligi = None
+            topKTahminler = []
+
+            try:
+                prediction = self._predictionService.predict(data["talepMetni"])
+                tahminTipi = prediction["tip"]
+                tahminOlasiligi = prediction["olasilik"]
+                topKTahminler = prediction["top_k"]
+            except ValueError:
+                if not manuelTip:
+                    raise
+                logger.warning("AI tahmini alınamadı, manuel seçim ile kayıt devam ediyor.")
 
             self._taskService.save(
                 talepMetni      = data["talepMetni"],
                 vatandasAdi     = data["vatandasAdi"],
                 ilce            = data["ilce"],
                 gelisKanali     = data["gelisKanali"],
-                talepTipi       = kullanilacakTip,
-                tahminOlasiligi = prediction["olasilik"],
-                topKTahminler   = prediction["top_k"],
+                manuelTip       = manuelTip,
+                tahminTipi      = tahminTipi,
+                tahminOlasiligi = tahminOlasiligi,
+                topKTahminler   = topKTahminler,
             )
             return True
         except ValueError as e:
@@ -59,9 +81,9 @@ class AppService:
             logger.error(f"Beklenmeyen hata (createTask): {e}")
             return False
 
-    def listTasks(self, limit: int = config.LIST_LIMIT) -> List[TaskResponse]:
+    def listTasks(self, limit: int = None) -> List[TaskResponse]:
         try:
-            tasks = self._taskService.getAll(limit)
+            tasks = self._taskService.getAll(limit if limit is not None else self._listLimit)
             return self._disassembler.toResponseList(tasks)
         except Exception as e:
             logger.error(f"Listeleme hatası: {e}")
@@ -77,6 +99,7 @@ class AppService:
     def approveTask(self, req: ApproveTaskRequest) -> bool:
         try:
             taskId, onaylananTip = self._assembler.toApproveData(req)
+            self._validateTaskType(onaylananTip, "onaylanan tip")
             self._taskService.approve(taskId, onaylananTip)
             return True
         except ValueError as e:
