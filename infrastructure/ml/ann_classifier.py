@@ -1,10 +1,11 @@
-import re
 import pickle
+import re
+
 import numpy as np
 from tensorflow import keras
 
-from domain.task.i_prediction_service import IPredictionService
 import config
+from domain.task.i_prediction_service import IPredictionService
 
 
 def preprocess_text(metin: str) -> str:
@@ -14,9 +15,9 @@ def preprocess_text(metin: str) -> str:
 class ANNClassifier(IPredictionService):
 
     def __init__(self):
-        self._model      = None
+        self._model = None
         self._vectorizer = None
-        self._encoder    = None
+        self._encoder = None
         self._load()
 
     def _load(self) -> None:
@@ -28,17 +29,21 @@ class ANNClassifier(IPredictionService):
 
     def predict(self, metin: str) -> dict:
         if not metin or not metin.strip():
-            raise ValueError("Tahmin için metin boş olamaz.")
-        temiz      = preprocess_text(metin)
-        X          = self._vectorizer.transform([temiz]).toarray()
-        prob       = self._model.predict(X, verbose=0)[0]
-        bestIdx    = int(np.argmax(prob))
+            raise ValueError("Tahmin i\u00e7in metin bo\u015f olamaz.")
+
+        temiz = preprocess_text(metin)
+        X = self._vectorizer.transform([temiz]).toarray()
+        prob = self._model.predict(X, verbose=0)[0]
+        bestIdx = int(np.argmax(prob))
         topIndices = np.argsort(prob)[::-1][:config.TOP_K]
         return {
-            "tip":      str(self._encoder.classes_[bestIdx]),
+            "tip": str(self._encoder.classes_[bestIdx]),
             "olasilik": float(prob[bestIdx]),
-            "top_k":    [
+            "top_k": [
                 {"tip": str(self._encoder.classes_[i]), "olasilik": round(float(prob[i]), 4)}
                 for i in topIndices
             ],
         }
+
+    def getSupportedTypes(self) -> set[str]:
+        return {str(label) for label in self._encoder.classes_}

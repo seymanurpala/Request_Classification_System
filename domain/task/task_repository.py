@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import List, Optional
 
-from pymongo import DESCENDING
 from bson import ObjectId, errors as bsonErrors
+from pymongo import DESCENDING
 
+import config
 from domain.task.task import Task
 from domain.task.task_factory import TaskFactory
 from infrastructure.persistence.mongo_client import getDb
-import config
 
 
 class ITaskRepository(ABC):
@@ -22,13 +22,13 @@ class ITaskRepository(ABC):
     def getAll(self, limit: int) -> List[Task]: ...
 
     @abstractmethod
-    def count(self) -> int: ...
+    def isTaskTypeInUse(self, isim: str) -> bool: ...
 
 
 class TaskRepository(ITaskRepository):
 
     def __init__(self):
-        self._col     = getDb()[config.MONGO_COLLECTION]
+        self._col = getDb()[config.MONGO_COLLECTION]
         self._factory = TaskFactory()
 
     def save(self, task: Task) -> str:
@@ -37,12 +37,12 @@ class TaskRepository(ITaskRepository):
             try:
                 result = self._col.update_one(
                     {"_id": ObjectId(task.id)},
-                    {"$set": data}
+                    {"$set": data},
                 )
                 if result.matched_count == 0:
-                    raise ValueError(f"Task bulunamadı: {task.id}")
+                    raise ValueError()
             except bsonErrors.InvalidId:
-                raise ValueError(f"Geçersiz task id: {task.id}")
+                raise ValueError()
         else:
             result = self._col.insert_one(data)
             task.id = str(result.inserted_id)
@@ -63,5 +63,14 @@ class TaskRepository(ITaskRepository):
         )
         return [self._factory.createObjectFromDB(doc) for doc in cursor]
 
-    def count(self) -> int:
-        return self._col.count_documents({})
+    def isTaskTypeInUse(self, isim: str) -> bool:
+        return self._col.find_one(
+            {
+                "$or": [
+                    {"manuelTip": isim},
+                    {"tahminTipi": isim},
+                    {"onaylananTip": isim},
+                ]
+            },
+            {"_id": 1},
+        ) is not None

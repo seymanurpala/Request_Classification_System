@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Optional, List
+
 from datetime import datetime, timezone
+from typing import List, Optional
 
 from domain.task.task import Task
 from domain.task.task_factory import TaskFactory
@@ -10,29 +11,29 @@ from domain.task.task_repository import ITaskRepository
 class TaskService:
 
     def __init__(self, taskRepository: ITaskRepository):
-        self._repo    = taskRepository
+        self._repo = taskRepository
         self._factory = TaskFactory()
 
     def save(
         self,
-        talepMetni:      str,
-        vatandasAdi:     str,
-        ilce:            str,
-        gelisKanali:     str,
-        manuelTip:       Optional[str]   = None,
-        tahminTipi:      Optional[str]   = None,
+        talepMetni: str,
+        vatandasAdi: str,
+        ilce: str,
+        gelisKanali: str,
+        manuelTip: Optional[str] = None,
+        tahminTipi: Optional[str] = None,
         tahminOlasiligi: Optional[float] = None,
-        topKTahminler:   Optional[list]  = None,
+        topKTahminler: Optional[list] = None,
     ) -> Task:
         task = self._factory.create(
-            talepMetni      = talepMetni,
-            vatandasAdi     = vatandasAdi,
-            ilce            = ilce,
-            gelisKanali     = gelisKanali,
-            manuelTip       = manuelTip,
-            tahminTipi      = tahminTipi,
-            tahminOlasiligi = tahminOlasiligi,
-            topKTahminler   = topKTahminler or [],
+            talepMetni=talepMetni,
+            vatandasAdi=vatandasAdi,
+            ilce=ilce,
+            gelisKanali=gelisKanali,
+            manuelTip=manuelTip,
+            tahminTipi=tahminTipi,
+            tahminOlasiligi=tahminOlasiligi,
+            topKTahminler=topKTahminler or [],
         )
         self._repo.save(task)
         return task
@@ -40,10 +41,10 @@ class TaskService:
     def approve(self, taskId: str, onaylananTip: str) -> Task:
         task = self._repo.getById(taskId)
         if task is None:
-            raise ValueError(f"Task bulunamadı: {taskId}")
+            raise ValueError()
 
-        task.onaylananTip     = onaylananTip
-        task.onaylandiMi      = True
+        task.onaylananTip = onaylananTip
+        task.onaylandiMi = True
         task.guncellemeTarihi = datetime.now(timezone.utc)
 
         self._repo.save(task)
@@ -55,5 +56,5 @@ class TaskService:
     def getById(self, taskId: str) -> Optional[Task]:
         return self._repo.getById(taskId)
 
-    def count(self) -> int:
-        return self._repo.count()
+    def isTaskTypeInUse(self, isim: str) -> bool:
+        return self._repo.isTaskTypeInUse(isim)

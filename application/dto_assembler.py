@@ -1,21 +1,53 @@
-from application.dto.request.create_task_request import CreateTaskRequest
-from application.dto.request.approve_task_request import ApproveTaskRequest
-from application.dto.request.add_task_type_request import AddTaskTypeRequest
+from typing import List, Optional
 
-#Request DTO'dan domain'e veri taşır. 
+from domain.task.task import Task
+from domain.task_type.types import TaskType
+from application.dto.response.task_response import TaskResponse
+from application.dto.response.ai_prediction_response import AIPredictionResponse
+from application.dto.response.task_type_response import TaskTypeResponse
+
+
+# sistem içindeki veriyi dışarı verilecek responsea çevirir
 class TaskDtoAssembler:
 
-    def toCreateData(self, req: CreateTaskRequest) -> dict:
-        return {
-            "talepMetni":  req.talepMetni,
-            "vatandasAdi": req.vatandasAdi,
-            "ilce":        req.ilce,
-            "gelisKanali": req.gelisKanali,
-            "talepTipi":   req.talepTipi,
-        }
+    def toResponse(self, task: Task) -> TaskResponse:
+        return TaskResponse(
+            id              = task.id,
+            talepMetni      = task.talepMetni,
+            vatandasAdi     = task.vatandasAdi,
+            ilce            = task.ilce,
+            gelisKanali     = task.gelisKanali,
+            manuelTip       = task.manuelTip,
+            tahminTipi      = task.tahminTipi,
+            tahminOlasiligi = task.tahminOlasiligi,
+            topKTahminler   = task.topKTahminler or [],
+            onaylananTip    = task.onaylananTip,
+            onaylandiMi     = task.onaylandiMi,
+            olusturmaTarihi = task.olusturmaTarihi,
+        )
 
-    def toApproveData(self, req: ApproveTaskRequest) -> tuple:
-        return req.taskId, req.onaylananTip
+    def toResponseList(self, tasks: List[Task]) -> List[TaskResponse]:
+        return [self.toResponse(task) for task in tasks]
 
-    def toAddTaskTypeData(self, req: AddTaskTypeRequest) -> str:
-        return req.isim
+    def toPredictionResponse(self, result: dict) -> AIPredictionResponse:
+        return AIPredictionResponse(
+            tip      = result["tip"],
+            olasilik = result["olasilik"],
+            topK     = result.get("top_k", []),
+        )
+
+    def toTaskTypeResponse(self, taskType: TaskType, supported: bool = True) -> TaskTypeResponse:
+        return TaskTypeResponse(value=taskType.value, supported=supported)
+
+    def toTaskTypeResponseList(
+        self,
+        taskTypes: List[TaskType],
+        supportedTypeNames: Optional[set[str]] = None,
+    ) -> List[TaskTypeResponse]:
+        if supportedTypeNames is None:
+            return [self.toTaskTypeResponse(taskType) for taskType in taskTypes]
+
+        return [
+            self.toTaskTypeResponse(taskType, supported=(taskType.value in supportedTypeNames))
+            for taskType in taskTypes
+        ]

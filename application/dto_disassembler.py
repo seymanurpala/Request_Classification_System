@@ -1,34 +1,25 @@
-from typing import List
+from application.dto.request.create_task_request import CreateTaskRequest
+from application.dto.request.approve_task_request import ApproveTaskRequest
+from application.dto.request.add_task_type_request import AddTaskTypeRequest
 
-from domain.task.task import Task
-from application.dto.response.task_response import TaskResponse
-from application.dto.response.ai_prediction_response import AIPredictionResponse
 
-#Domain nesnesinden Response DTO'ya çevirir. 
+# dışarıdan gelen request verisini sistemin içeride kullanacağı hale çevirir.
 class TaskDtoDisassembler:
 
-    def toResponse(self, task: Task) -> TaskResponse:
-        return TaskResponse(
-            id              = task.id,
-            talepMetni      = task.talepMetni,
-            vatandasAdi     = task.vatandasAdi,
-            ilce            = task.ilce,
-            gelisKanali     = task.gelisKanali,
-            manuelTip       = task.manuelTip,
-            tahminTipi      = task.tahminTipi,
-            tahminOlasiligi = task.tahminOlasiligi,
-            topKTahminler   = task.topKTahminler or [],
-            onaylananTip    = task.onaylananTip,
-            onaylandiMi     = task.onaylandiMi,
-            olusturmaTarihi = task.olusturmaTarihi,
-        )
+    def toCreateData(self, req: CreateTaskRequest) -> dict:
+        return {
+            "talepMetni":  (req.talepMetni or "").strip(),
+            "vatandasAdi": (req.vatandasAdi or "").strip(),
+            "ilce":        (req.ilce or "").strip(),
+            "gelisKanali": (req.gelisKanali or "").strip(),
+            "manuelTip":   ((req.talepTipi or "").strip() or None),
+        }
 
-    def toResponseList(self, tasks: List[Task]) -> List[TaskResponse]:
-        return [self.toResponse(t) for t in tasks]
+    def toApproveData(self, req: ApproveTaskRequest) -> dict:
+        return {
+            "taskId": (req.taskId or "").strip(),
+            "onaylananTip": (req.onaylananTip or "").strip(),
+        }
 
-    def toPredictionResponse(self, result: dict) -> AIPredictionResponse:
-        return AIPredictionResponse(
-            tip      = result["tip"],
-            olasilik = result["olasilik"],
-            topK     = result.get("top_k", []),
-        )
+    def toAddTaskTypeData(self, req: AddTaskTypeRequest) -> dict:
+        return {"isim": (req.isim or "").strip()}

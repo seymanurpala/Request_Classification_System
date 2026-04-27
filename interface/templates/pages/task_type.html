@@ -12,7 +12,7 @@
             <div class="card-body">
                 <form method="POST" action="{{ url_for('task.addTaskType') }}" class="d-flex gap-2">
                     <input type="text" name="isim" class="form-control"
-                           placeholder="Yeni tip adı..." required>
+                           placeholder="Yeni tip ad&#305;..." required>
                     <button type="submit" class="btn btn-primary text-nowrap">
                         <i class="bi bi-plus-lg me-1"></i>Ekle
                     </button>
@@ -28,12 +28,17 @@
                 {% for taskType in taskTypes %}
                 {% set tipIsim = taskType.value %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {% with tip = tipIsim %}
-                        {% include "components/badge.html" %}
-                    {% endwith %}
+                    <div>
+                        {% with tip = tipIsim %}
+                            {% include "components/badge.html" %}
+                        {% endwith %}
+                        {% if not taskType.supported %}
+                            <small class="d-block text-warning mt-1">Modelde desteklenmiyor, formda g&#246;r&#252;nmez.</small>
+                        {% endif %}
+                    </div>
                     <form method="POST"
                           action="{{ url_for('task.deleteTaskType', isim=tipIsim) }}"
-                          onsubmit="return confirm('{{ tipIsim }} tipini silmek istediğinize emin misiniz?')">
+                          onsubmit="return confirm('{{ tipIsim }} tipini silmek istedi&#287;inize emin misiniz?')">
                         <button type="submit" class="btn btn-sm btn-outline-danger">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -41,7 +46,7 @@
                 </li>
                 {% else %}
                 <li class="list-group-item text-muted text-center py-4">
-                    Henüz hiç tip tanımlanmamış.
+                    Hen&#252;z hi&#231; tip tan&#305;mlanmam&#305;&#351;.
                 </li>
                 {% endfor %}
             </ul>

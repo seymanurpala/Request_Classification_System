@@ -19,7 +19,7 @@ def sync_task_types():
     col.insert_many([{"isim": name} for name in task_types])
 
     print("Talep tipleri senkronize edildi.")
-    print("Toplam tip sayisi:", len(task_types))
+    print("Toplam tip sayısı:", len(task_types))
     for name in task_types:
         print(name)
 

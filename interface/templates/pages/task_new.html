@@ -7,24 +7,24 @@
     <div class="col-lg-7">
         <div class="card">
             <div class="card-header bg-white">
-                <h5 class="mb-0">Yeni Talep Oluştur</h5>
+                <h5 class="mb-0">Yeni Talep Olu&#351;tur</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('task.saveTask') }}">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Vatandaş Adı</label>
+                        <label class="form-label fw-semibold">Vatanda&#351; Ad&#305;</label>
                         <input type="text" name="vatandas_adi" class="form-control"
                                placeholder="Ad Soyad" required minlength="2">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">İlçe</label>
+                        <label class="form-label fw-semibold">&#304;l&#231;e</label>
                         <input type="text" name="ilce" class="form-control"
-                               placeholder="İlçe adı" required>
+                               placeholder="&#304;l&#231;e ad&#305;" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Geliş Kanalı</label>
+                        <label class="form-label fw-semibold">Geli&#351; Kanal&#305;</label>
                         <select name="gelis_kanali" class="form-select" required>
-                            <option value="">Seçiniz...</option>
+                            <option value="">Se&#231;iniz...</option>
                             {% for channel in channels %}
                                 <option value="{{ channel }}">{{ channel }}</option>
                             {% endfor %}
@@ -33,7 +33,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Talep Metni</label>
                         <textarea name="talep_metni" id="talepMetni" class="form-control"
-                                  rows="4" placeholder="Talep açıklamasını yazınız..."
+                                  rows="4" placeholder="Talep a&#231;&#305;klamas&#305;n&#305; yaz&#305;n&#305;z..."
                                   required minlength="3"></textarea>
                         <div class="mt-2 d-flex align-items-center gap-3 flex-wrap">
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="predictBtn">
@@ -48,14 +48,14 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Talep Tipi</label>
                         <select name="talep_tipi" id="talepTipi" class="form-select" required>
-                            <option value="">Seçiniz...</option>
+                            <option value="">Se&#231;iniz...</option>
                             {% for tip in taskTypes %}
-                                <option value="{{ tip }}">{{ tip }}</option>
+                                <option value="{{ tip.value }}">{{ tip.value }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="d-flex gap-2 justify-content-end">
-                        <a href="{{ url_for('task.index') }}" class="btn btn-outline-secondary">İptal</a>
+                        <a href="{{ url_for('task.index') }}" class="btn btn-outline-secondary">&#304;ptal</a>
                         <button type="submit" class="btn btn-primary">Kaydet</button>
                     </div>
                 </form>
@@ -69,26 +69,35 @@
 <script>
     document.getElementById("predictBtn").addEventListener("click", function () {
         const metin = document.getElementById("talepMetni").value.trim();
-        if (!metin) { alert("Lütfen önce talep metnini giriniz."); return; }
+        if (!metin) { alert("L\u00fctfen \u00f6nce talep metnini giriniz."); return; }
         this.disabled = true;
-        this.textContent = "Tahmin ediliyor...";
+        this.textContent = "Tahmin al\u0131n\u0131yor...";
         fetch("/predict?text=" + encodeURIComponent(metin))
             .then(r => r.json())
             .then(data => {
+                const topKDiv = document.getElementById("topKResults");
+                const topKSpan = document.getElementById("topKList");
+                if (!data.tahmin) {
+                    topKSpan.innerHTML = "";
+                    topKDiv.classList.add("d-none");
+                    alert("Uygun tahmin \u00fcretilemedi.");
+                    return;
+                }
                 const select = document.getElementById("talepTipi");
                 for (let opt of select.options) {
                     if (opt.value === data.tahmin) { opt.selected = true; break; }
                 }
-                const topKDiv  = document.getElementById("topKResults");
-                const topKSpan = document.getElementById("topKList");
                 if (data.top_k && data.top_k.length > 0) {
                     topKSpan.innerHTML = data.top_k
                         .map(t => `<span class="badge bg-secondary me-1">${t.tip} %${Math.round(t.olasilik * 100)}</span>`)
                         .join("");
                     topKDiv.classList.remove("d-none");
+                } else {
+                    topKSpan.innerHTML = "";
+                    topKDiv.classList.add("d-none");
                 }
             })
-            .catch(() => alert("Tahmin alınamadı."))
+            .catch(() => alert("Tahmin al\u0131namad\u0131."))
             .finally(() => {
                 this.disabled = false;
                 this.textContent = "Tekrar Tahmin Et";

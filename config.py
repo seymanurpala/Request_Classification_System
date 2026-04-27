@@ -16,6 +16,7 @@ RANDOM_STATE = 42
 EPOCHS       = 30
 BATCH_SIZE   = 32
 TOP_K        = 3
+VALID_CHANNELS = ["\u00c7a\u011fr\u0131", "Mobil"]
 
 SECRET_KEY  = "talep-siniflandirma-secret"
 FLASK_DEBUG = True

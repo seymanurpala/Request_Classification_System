@@ -1,6 +1,12 @@
-class TaskType:
-    def __init__(self, value: str):
-        self.value = value.strip()
+from dataclasses import dataclass
 
-    def __str__(self):
+
+@dataclass
+class TaskType:
+    value: str
+
+    def __post_init__(self) -> None:
+        self.value = self.value.strip()
+
+    def __str__(self) -> str:
         return self.value
