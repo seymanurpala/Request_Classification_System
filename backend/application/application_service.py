@@ -16,7 +16,6 @@ from application.dto.response.task_type_response import TaskTypeResponse
 from application.dto_assembler import TaskDtoAssembler
 from application.dto_disassembler import TaskDtoDisassembler
 from application.task_validator import TaskValidator
-from application.task_validator import TaskValidator
 
 logger = logging.getLogger(__name__)
 

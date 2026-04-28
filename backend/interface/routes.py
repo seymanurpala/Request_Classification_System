@@ -7,7 +7,9 @@ from application.dto.request.ai_prediction_request import AIPredictionRequest
 from application.dto.request.approve_task_request import ApproveTaskRequest
 from application.dto.request.create_task_request import CreateTaskRequest
 
-_TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
+_TEMPLATE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "templates")
+)
 bp = Blueprint("task", __name__, template_folder=_TEMPLATE_DIR)
 _app = None
 
