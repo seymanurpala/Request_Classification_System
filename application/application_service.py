@@ -36,8 +36,7 @@ class AppService:
         self._listLimit = listLimit
         self._assembler = TaskDtoAssembler()
         self._disassembler = TaskDtoDisassembler()
-        self._validator = TaskValidator()
-        self._validator=TaskValidator()
+        self._validator =TaskValidator()
 
     def _getAllTaskTypes(self):
         return self._taskTypeService.getAll()
