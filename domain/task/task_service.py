@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from domain.task.task import Task
-from domain.task.task_factory import TaskFactory
 from domain.task.task_repository import ITaskRepository
 
 
@@ -12,7 +11,6 @@ class TaskService:
 
     def __init__(self, taskRepository: ITaskRepository):
         self._repo = taskRepository
-        self._factory = TaskFactory()
 
     def save(
         self,
@@ -24,8 +22,8 @@ class TaskService:
         tahminTipi: Optional[str] = None,
         tahminOlasiligi: Optional[float] = None,
         topKTahminler: Optional[list] = None,
-    ) -> Task:
-        task = self._factory.create(
+    ) -> bool:
+        task = Task(
             talepMetni=talepMetni,
             vatandasAdi=vatandasAdi,
             ilce=ilce,
@@ -36,9 +34,9 @@ class TaskService:
             topKTahminler=topKTahminler or [],
         )
         self._repo.save(task)
-        return task
+        return True
 
-    def approve(self, taskId: str, onaylananTip: str) -> Task:
+    def approve(self, taskId: str, onaylananTip: str) -> bool:
         task = self._repo.getById(taskId)
         if task is None:
             raise ValueError()
@@ -48,7 +46,7 @@ class TaskService:
         task.guncellemeTarihi = datetime.now(timezone.utc)
 
         self._repo.save(task)
-        return task
+        return True
 
     def getAll(self, limit: int) -> List[Task]:
         return self._repo.getAll(limit)

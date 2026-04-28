@@ -15,6 +15,8 @@ from application.dto.response.task_response import TaskResponse
 from application.dto.response.task_type_response import TaskTypeResponse
 from application.dto_assembler import TaskDtoAssembler
 from application.dto_disassembler import TaskDtoDisassembler
+from application.task_validator import TaskValidator
+from application.task_validator import TaskValidator
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,8 @@ class AppService:
         self._listLimit = listLimit
         self._assembler = TaskDtoAssembler()
         self._disassembler = TaskDtoDisassembler()
+        self._validator = TaskValidator()
+        self._validator=TaskValidator()
 
     def _getAllTaskTypes(self):
         return self._taskTypeService.getAll()
@@ -71,37 +75,11 @@ class AppService:
             "top_k": topKTahminler,
         }
 
-    def _validateTaskType(self, tip: str, alan: str, selectableTaskTypeNames: set[str]) -> None:
-        if tip and tip not in selectableTaskTypeNames:
-            raise ValueError(f"Gecersiz {alan}: {tip}")
-
-    def _validateRequiredText(self, value: str, alan: str, minLength: int = 1) -> None:
-        if not value or not value.strip():
-            raise ValueError(f"{alan} bos olamaz.")
-        if len(value.strip()) < minLength:
-            raise ValueError(f"{alan} cok kisa.")
-
-    def _validateGelisKanali(self, gelisKanali: str) -> None:
-        if gelisKanali not in set(config.VALID_CHANNELS):
-            raise ValueError(f"Gecersiz gelis kanali: {gelisKanali}")
-
-    def _ensureTaskExists(self, taskId: str) -> None:
-        if self._taskService.getById(taskId) is None:
+    def _ensureTaskExists(self, taskId: str):
+        task = self._taskService.getById(taskId)
+        if task is None:
             raise ValueError(f"Task bulunamadi: {taskId}")
-
-    def _validateCreateTaskData(self, data: dict, selectableTaskTypeNames: set[str]) -> None:
-        for key, label, minLength in [
-            ("talepMetni", "Talep metni", 3),
-            ("vatandasAdi", "Vatandas adi", 2),
-            ("ilce", "Ilce", 1),
-            ("gelisKanali", "Gelis kanali", 1),
-        ]:
-            self._validateRequiredText(data[key], label, minLength=minLength)
-
-        self._validateGelisKanali(data["gelisKanali"])
-
-        if data.get("manuelTip"):
-            self._validateTaskType(data["manuelTip"], "talep tipi", selectableTaskTypeNames)
+        return task
 
     def getChannels(self) -> List[str]:
         return list(config.VALID_CHANNELS)
@@ -111,7 +89,7 @@ class AppService:
             data = self._disassembler.toCreateData(req)
             manuelTip = data.get("manuelTip")
             selectableTaskTypeNames = self._getSelectableTaskTypeNames()
-            self._validateCreateTaskData(data, selectableTaskTypeNames)
+            self._validator.validateCreateTaskData(data, selectableTaskTypeNames)
             predictionData = {
                 "tahminTipi": None,
                 "tahminOlasiligi": None,
@@ -142,11 +120,10 @@ class AppService:
             if not manuelTip and not predictionData["tahminTipi"]:
                 raise ValueError("Talep tipi belirlenemedi.")
 
-            self._taskService.save(
+            return self._taskService.save(
                 **data,
                 **predictionData,
             )
-            return True
         except ValueError as e:
             logger.error(f"Talep olusturma hatasi: {e}")
             return False
@@ -161,13 +138,14 @@ class AppService:
     def approveTask(self, req: ApproveTaskRequest) -> bool:
         try:
             data = self._disassembler.toApproveData(req)
-            self._validateRequiredText(data["taskId"], "Task id")
-            self._validateRequiredText(data["onaylananTip"], "Onaylanan tip")
-            self._ensureTaskExists(data["taskId"])
+            self._validator.validateRequiredText(data["taskId"], "Task id")
+            self._validator.validateRequiredText(data["onaylananTip"], "Onaylanan tip")
+            task = self._ensureTaskExists(data["taskId"])
+            if task.onaylandiMi:
+                raise ValueError("Task zaten onaylanmis.")
             selectableTaskTypeNames = self._getSelectableTaskTypeNames()
-            self._validateTaskType(data["onaylananTip"], "onaylanan tip", selectableTaskTypeNames)
-            self._taskService.approve(**data)
-            return True
+            self._validator.validateTaskType(data["onaylananTip"], "onaylanan tip", selectableTaskTypeNames)
+            return self._taskService.approve(**data)
         except ValueError as e:
             logger.error(f"Onaylama hatasi: {e}")
             return False
@@ -211,7 +189,7 @@ class AppService:
     def addTaskType(self, req: AddTaskTypeRequest) -> bool:
         try:
             data = self._disassembler.toAddTaskTypeData(req)
-            self._validateRequiredText(data["isim"], "Talep tipi")
+            self._validator.validateRequiredText(data["isim"], "Talep tipi")
             return self._taskTypeService.add(**data)
         except ValueError as e:
             logger.error(f"Talep tipi ekleme hatasi: {e}")
@@ -222,11 +200,11 @@ class AppService:
 
     def deleteTaskType(self, isim: str) -> bool:
         try:
-            temizIsim = (isim or "").strip()
-            self._validateRequiredText(temizIsim, "Talep tipi")
-            if self._taskService.isTaskTypeInUse(temizIsim):
+            data = self._disassembler.toDeleteTaskTypeData(isim)
+            self._validator.validateRequiredText(data["isim"], "Talep tipi")
+            if self._taskService.isTaskTypeInUse(data["isim"]):
                 raise ValueError("Bu talep tipi mevcut kayitlarda kullanildigi icin silinemez.")
-            return self._taskTypeService.delete(temizIsim)
+            return self._taskTypeService.delete(data["isim"])
         except ValueError as e:
             logger.error(f"Talep tipi silme hatasi: {e}")
             return False

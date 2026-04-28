@@ -6,20 +6,26 @@ from application.dto.request.add_task_type_request import AddTaskTypeRequest
 # dışarıdan gelen request verisini sistemin içeride kullanacağı hale çevirir.
 class TaskDtoDisassembler:
 
+    def _cleanText(self,value:str)->str:
+        return (value or "").strip()
+
     def toCreateData(self, req: CreateTaskRequest) -> dict:
         return {
-            "talepMetni":  (req.talepMetni or "").strip(),
-            "vatandasAdi": (req.vatandasAdi or "").strip(),
-            "ilce":        (req.ilce or "").strip(),
-            "gelisKanali": (req.gelisKanali or "").strip(),
-            "manuelTip":   ((req.talepTipi or "").strip() or None),
+            "talepMetni":  self._cleanText(req.talepMetni),
+            "vatandasAdi": self._cleanText(req.vatandasAdi),
+            "ilce":        self._cleanText(req.ilce),
+            "gelisKanali": self._cleanText(req.gelisKanali),
+            "manuelTip":   self._cleanText(req.talepTipi) or None,
         }
 
     def toApproveData(self, req: ApproveTaskRequest) -> dict:
         return {
-            "taskId": (req.taskId or "").strip(),
-            "onaylananTip": (req.onaylananTip or "").strip(),
+            "taskId": self._cleanText(req.taskId),
+            "onaylananTip":self._cleanText(req.onaylananTip),
         }
 
     def toAddTaskTypeData(self, req: AddTaskTypeRequest) -> dict:
-        return {"isim": (req.isim or "").strip()}
+        return {"isim":self._cleanText(req.isim)}
+
+    def toDeleteTaskTypeData(self, isim: str) -> dict:
+        return {"isim":self._cleanText(isim)}

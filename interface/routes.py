@@ -48,7 +48,7 @@ def saveTask():
     if success:
         flash("Talep başarıyla kaydedildi.", "success")
     else:
-        flash("Talep kaydedilemedi. L\u00fctfen bilgileri kontrol ediniz.", "danger")
+        flash("Talep kaydedilemedi. Lütfen bilgileri kontrol ediniz.", "danger")
     return redirect(url_for("task.index"))
 
 
@@ -58,11 +58,11 @@ def approveTask(task_id):
     if onaylananTip:
         success = _app.approveTask(ApproveTaskRequest(taskId=task_id, onaylananTip=onaylananTip))
         if success:
-            flash("Talep onayland\u0131.", "success")
+            flash("Talep onaylandı.", "success")
         else:
-            flash("Talep onaylanamad\u0131.", "danger")
+            flash("Talep onaylanamadı.", "danger")
     else:
-        flash("Onaylanacak tip se\u00e7ilmedi.", "danger")
+        flash("Onaylanacak tip seçilmedi.", "danger")
     return redirect(url_for("task.index"))
 
 
@@ -83,11 +83,11 @@ def addTaskType():
     if isim:
         success = _app.addTaskType(AddTaskTypeRequest(isim=isim))
         if success:
-            flash("Talep tipi eklendi. Formlarda g\u00f6r\u00fcnmesi i\u00e7in modeli yeniden e\u011fitmelisiniz.", "info")
+            flash("Talep tipi eklendi. Formlarda görünmesi için modeli yeniden eğitmelisiniz.", "info")
         else:
             flash("Bu tip zaten mevcut veya eklenemedi.", "warning")
     else:
-        flash("Talep tipi bo\u015f olamaz.", "warning")
+        flash("Talep tipi boş olamaz.", "warning")
     return redirect(url_for("task.taskTypeSettings"))
 
 

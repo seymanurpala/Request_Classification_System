@@ -7,28 +7,6 @@ from domain.task.task import Task
 class TaskFactory:
 
     @staticmethod
-    def create(
-        talepMetni:      str,
-        vatandasAdi:     str,
-        ilce:            str,
-        gelisKanali:     str,
-        manuelTip:       Optional[str]   = None,
-        tahminTipi:      Optional[str]   = None,
-        tahminOlasiligi: Optional[float] = None,
-        topKTahminler:   Optional[list]  = None,
-    ) -> Task:
-        return Task(
-            talepMetni      = talepMetni,
-            vatandasAdi     = vatandasAdi,
-            ilce            = ilce,
-            gelisKanali     = gelisKanali,
-            manuelTip       = manuelTip,
-            tahminTipi      = tahminTipi,
-            tahminOlasiligi = tahminOlasiligi,
-            topKTahminler   = topKTahminler or [],
-        )
-
-    @staticmethod
     def createObjectFromDB(data: dict) -> Optional[Task]:
         if not data:
             return None
@@ -40,7 +18,7 @@ class TaskFactory:
             manuelTip        = data.get("manuelTip"),
             tahminTipi       = data.get("tahminTipi"),
             tahminOlasiligi  = data.get("tahminOlasiligi"),
-            topKTahminler    = data.get("topKTahminler", []),
+            topKTahminler    = data.get("topKTahminler") or [],
             onaylananTip     = data.get("onaylananTip"),
             onaylandiMi      = data.get("onaylandiMi", False),
             olusturmaTarihi  = data.get("olusturmaTarihi"),

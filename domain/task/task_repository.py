@@ -13,7 +13,7 @@ from infrastructure.persistence.mongo_client import getDb
 class ITaskRepository(ABC):
 
     @abstractmethod
-    def save(self, task: Task) -> str: ...
+    def save(self, task: Task) -> None: ...
 
     @abstractmethod
     def getById(self, taskId: str) -> Optional[Task]: ...
@@ -31,29 +31,32 @@ class TaskRepository(ITaskRepository):
         self._col = getDb()[config.MONGO_COLLECTION]
         self._factory = TaskFactory()
 
-    def save(self, task: Task) -> str:
+    def save(self, task: Task) -> None:
         data = self._factory.createObjectForDB(task)
         if task.id:
             try:
-                result = self._col.update_one(
-                    {"_id": ObjectId(task.id)},
-                    {"$set": data},
-                )
-                if result.matched_count == 0:
-                    raise ValueError()
-            except bsonErrors.InvalidId:
+                objectId = ObjectId(task.id)
+            except (bsonErrors.InvalidId, TypeError):
+                raise ValueError()
+
+            result = self._col.update_one(
+                {"_id": objectId},
+                {"$set": data},
+            )
+            if result.matched_count == 0:
                 raise ValueError()
         else:
             result = self._col.insert_one(data)
             task.id = str(result.inserted_id)
-        return task.id
 
     def getById(self, taskId: str) -> Optional[Task]:
         try:
-            doc = self._col.find_one({"_id": ObjectId(taskId)})
-            return self._factory.createObjectFromDB(doc) if doc else None
+            objectId = ObjectId(taskId)
         except (bsonErrors.InvalidId, TypeError):
             return None
+
+        doc = self._col.find_one({"_id": objectId})
+        return self._factory.createObjectFromDB(doc) if doc else None
 
     def getAll(self, limit: int) -> List[Task]:
         cursor = (

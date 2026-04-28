@@ -7,7 +7,7 @@ from application.dto.response.ai_prediction_response import AIPredictionResponse
 from application.dto.response.task_type_response import TaskTypeResponse
 
 
-# sistem içindeki veriyi dışarı verilecek responsea çevirir
+# sistem içindeki veriyi dışarı verilecek response'a çevirir
 class TaskDtoAssembler:
 
     def toResponse(self, task: Task) -> TaskResponse:
@@ -20,7 +20,7 @@ class TaskDtoAssembler:
             manuelTip       = task.manuelTip,
             tahminTipi      = task.tahminTipi,
             tahminOlasiligi = task.tahminOlasiligi,
-            topKTahminler   = task.topKTahminler or [],
+            topKTahminler   = task.topKTahminler,
             onaylananTip    = task.onaylananTip,
             onaylandiMi     = task.onaylandiMi,
             olusturmaTarihi = task.olusturmaTarihi,
@@ -33,7 +33,7 @@ class TaskDtoAssembler:
         return AIPredictionResponse(
             tip      = result["tip"],
             olasilik = result["olasilik"],
-            topK     = result.get("top_k", []),
+            topK     = result["top_k"],
         )
 
     def toTaskTypeResponse(self, taskType: TaskType, supported: bool = True) -> TaskTypeResponse:

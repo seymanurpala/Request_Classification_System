@@ -1,10 +1,17 @@
+from __future__ import annotations
+from typing import Optional
+
 from domain.task_type.types import TaskType
 
 
 class TaskTypeFactory:
 
     @staticmethod
-    def create(isim: str) -> TaskType:
-        return TaskType(isim)
-    
-    
+    def createObjectFromDB(data: dict) -> Optional[TaskType]:
+        if not data:
+            return None
+        return TaskType(data["isim"])
+
+    @staticmethod
+    def createObjectForDB(taskType: TaskType) -> dict:
+        return {"isim": taskType.value}
