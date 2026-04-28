@@ -29,8 +29,10 @@ class TaskTypeRepository(ITaskTypeRepository):
         return [self._factory.createObjectFromDB(d) for d in self._col.find()]
 
     def add(self, taskType: TaskType) -> bool:
-        if self._col.find_one({"isim": taskType.value}):
-            return False
+        normalizedName = taskType.value.casefold()
+        for doc in self._col.find({}, {"isim": 1}):
+            if str(doc.get("isim", "")).casefold() == normalizedName:
+                return False
         self._col.insert_one(self._factory.createObjectForDB(taskType))
         return True
 

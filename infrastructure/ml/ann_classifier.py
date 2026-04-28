@@ -29,7 +29,7 @@ class ANNClassifier(IPredictionService):
 
     def predict(self, metin: str) -> dict:
         if not metin or not metin.strip():
-            raise ValueError("Tahmin i\u00e7in metin bo\u015f olamaz.")
+            raise ValueError("Tahmin için metin boş olamaz.")
 
         temiz = preprocess_text(metin)
         X = self._vectorizer.transform([temiz]).toarray()

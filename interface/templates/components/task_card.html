@@ -26,7 +26,7 @@
                     {% if task.manuelTip %}
                         <span class="ms-2">
                             <i class="bi bi-pencil-square text-primary me-1"></i>
-                            <small class="text-primary fw-semibold">Se&#231;ilen:</small>
+                            <small class="text-primary fw-semibold">Seçilen:</small>
                         </span>
                         {% with tip = task.manuelTip %}
                             {% include "components/badge.html" %}
@@ -36,7 +36,7 @@
                     {% if task.onaylandiMi %}
                         <span class="ms-2">
                             <i class="bi bi-check-circle-fill text-success me-1"></i>
-                            <small class="text-success fw-semibold">Onayland&#305;:</small>
+                            <small class="text-success fw-semibold">Onaylandı:</small>
                         </span>
                         {% with tip = task.onaylananTip %}
                             {% include "components/badge.html" %}
@@ -68,7 +68,7 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <label class="form-label mb-0 fw-semibold">Onaylanacak Tip:</label>
                     <select name="onaylanan_tip" class="form-select form-select-sm w-auto" required>
-                        <option value="">Se&#231;iniz...</option>
+                        <option value="">Seçiniz...</option>
                         {% for typeObj in taskTypes %}
                             {% set varsayilanTip = task.onaylananTip or task.manuelTip or task.tahminTipi %}
                             <option value="{{ typeObj.value }}"
