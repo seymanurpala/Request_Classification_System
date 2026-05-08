@@ -10,7 +10,7 @@ _app = None
 
 
 def initRoutes(app):
-    global _app
+    global _app  # dışarıdaki appi değiştirir routelar sonra bunu kullaniyor
     _app = app
 
 

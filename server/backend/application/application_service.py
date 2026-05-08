@@ -119,8 +119,8 @@ class AppService:
                 raise ValueError("Talep tipi belirlenemedi.")
 
             return self._taskService.save(
-                **data,
-                **predictionData,
+                **data, #data içindeki key-value’ları alir 
+                **predictionData, #predictionData içindeki key-value’ları alir
             )
         except ValueError as e:
             logger.error(f"Talep olusturma hatasi: {e}")
