@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Talep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar-brand { font-weight: 700; letter-spacing: 1px; }
+        .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="task_list.html">
+            <i class="bi bi-clipboard2-check me-2"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="task_list.html">Talepler</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="task_type.html">Talep Tipleri</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <div id="alert-box"></div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Yeni Talep Oluştur</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Vatandaş Adı</label>
+                        <input type="text" id="vatandasAdi" class="form-control"
+                               placeholder="Ad Soyad" required minlength="2">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">İlçe</label>
+                        <input type="text" id="ilce" class="form-control"
+                               placeholder="İlçe adı" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Geliş Kanalı</label>
+                        <select id="gelisKanali" class="form-select" required>
+                            <option value="">Seçiniz...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Talep Metni</label>
+                        <textarea id="talepMetni" class="form-control"
+                                  rows="4" placeholder="Talep açıklamasını yazınız..."
+                                  required minlength="3"></textarea>
+                        <div class="mt-2 d-flex align-items-center gap-3 flex-wrap">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="predictBtn">
+                                AI ile Tahmin Et
+                            </button>
+                            <div id="topKResults" class="d-none">
+                                <small class="text-muted me-1"><i class="bi bi-bar-chart me-1"></i>Top-3:</small>
+                                <span id="topKList"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Talep Tipi</label>
+                        <select id="talepTipi" class="form-select" required>
+                            <option value="">Seçiniz...</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="task_list.html" class="btn btn-outline-secondary">İptal</a>
+                        <button type="button" id="saveBtn" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API = "http://localhost:5000";
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById("alert-box");
+        const wrapper = document.createElement("div");
+        wrapper.className = `alert alert-${type} alert-dismissible fade show`;
+        wrapper.setAttribute("role", "alert");
+        wrapper.append(document.createTextNode(message));
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn-close";
+        button.setAttribute("data-bs-dismiss", "alert");
+        wrapper.appendChild(button);
+
+        alertBox.replaceChildren(wrapper);
+    }
+
+    function loadFormData() {
+        fetch(`${API}/api/task/new`)
+            .then(res => res.json())
+            .then(data => {
+                const kanalSelect = document.getElementById("gelisKanali");
+                data.channels.forEach(channel => {
+                    const opt = document.createElement("option");
+                    opt.value = channel;
+                    opt.textContent = channel;
+                    kanalSelect.appendChild(opt);
+                });
+
+                const tipSelect = document.getElementById("talepTipi");
+                data.taskTypes.forEach(tip => {
+                    const opt = document.createElement("option");
+                    opt.value = tip.value;
+                    opt.textContent = tip.value;
+                    tipSelect.appendChild(opt);
+                });
+            })
+            .catch(() => showAlert("Form verileri yüklenemedi. Backend bağlantısını kontrol edin.", "danger"));
+    }
+
+    document.getElementById("predictBtn").addEventListener("click", function () {
+        const metin = document.getElementById("talepMetni").value.trim();
+        if (!metin) { alert("Lütfen önce talep metnini giriniz."); return; }
+        this.disabled = true;
+        this.textContent = "Tahmin alınıyor...";
+        fetch(`${API}/api/predict?text=` + encodeURIComponent(metin))
+            .then(r => r.json())
+            .then(data => {
+                const topKDiv = document.getElementById("topKResults");
+                const topKSpan = document.getElementById("topKList");
+                if (!data.tahmin) {
+                    topKSpan.replaceChildren();
+                    topKDiv.classList.add("d-none");
+                    alert("Uygun tahmin üretilemedi.");
+                    return;
+                }
+                const select = document.getElementById("talepTipi");
+                for (let opt of select.options) {
+                    if (opt.value === data.tahmin) { opt.selected = true; break; }
+                }
+                if (data.top_k && data.top_k.length > 0) {
+                    topKSpan.replaceChildren();
+                    for (const t of data.top_k) {
+                        const badge = document.createElement("span");
+                        badge.className = "badge bg-secondary me-1";
+                        badge.textContent = `${t.tip} %${Math.round(t.olasilik * 100)}`;
+                        topKSpan.appendChild(badge);
+                    }
+                    topKDiv.classList.remove("d-none");
+                } else {
+                    topKSpan.replaceChildren();
+                    topKDiv.classList.add("d-none");
+                }
+            })
+            .catch(() => alert("Tahmin alınamadı."))
+            .finally(() => {
+                this.disabled = false;
+                this.textContent = "Tekrar Tahmin Et";
+            });
+    });
+
+    document.getElementById("saveBtn").addEventListener("click", function () {
+        const vatandasAdi = document.getElementById("vatandasAdi").value.trim();
+        const ilce = document.getElementById("ilce").value.trim();
+        const gelisKanali = document.getElementById("gelisKanali").value;
+        const talepMetni = document.getElementById("talepMetni").value.trim();
+        const talepTipi = document.getElementById("talepTipi").value || null;
+
+        if (!vatandasAdi || !ilce || !gelisKanali || !talepMetni) {
+            showAlert("Lütfen tüm zorunlu alanları doldurunuz.", "warning");
+            return;
+        }
+
+        fetch(`${API}/api/task/save`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                vatandas_adi: vatandasAdi,
+                ilce: ilce,
+                gelis_kanali: gelisKanali,
+                talep_metni: talepMetni,
+                talep_tipi: talepTipi,
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "task_list.html";
+            } else {
+                showAlert(data.message, "danger");
+            }
+        })
+        .catch(() => showAlert("Bağlantı hatası.", "danger"));
+    });
+
+    loadFormData();
+</script>
+
+</body>
+</html>
